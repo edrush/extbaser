@@ -16,5 +16,10 @@
         "psr-0": {  "EdRush\\T3Extbaser\\": "lib/",
                     "EBT\\ExtensionBuilder\\": "lib/"
         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            " git submodule update --init --recursive"
+        ]
     }
 }
