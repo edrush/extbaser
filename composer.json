@@ -1,0 +1,20 @@
+{
+    "name": "edrush/t3extbaser-lib",
+    "type": "library",
+    "description": "Convert a database scheme to a TYPO3 Extbase Extension.",
+    "keywords": ["orm", "database", "extbase"],
+    "license": "GPL",
+    "authors": [
+        {"name": "Wolfram Eberius", "email": "edrush@posteo.de"}
+    ],
+    "version": "0.0.1",
+    "require": {
+        "php": ">= 5.4.0",
+        "doctrine/orm": "*"
+    },
+    "autoload": {
+        "psr-0": {  "EdRush\\T3Extbaser\\": "lib/",
+                    "EBT\\ExtensionBuilder\\": "lib/"
+        }
+    }
+}
