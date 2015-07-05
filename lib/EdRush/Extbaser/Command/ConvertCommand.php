@@ -13,6 +13,12 @@ use Doctrine\ORM\Tools\Console\MetadataFilter;
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
 
+use EdRush\Extbaser\ExtbaseExporter;
+
+/**
+ * @todo Handle multiple relations from one table to another for import (Doctrine error "Property xy already declared, must be declared only once...").
+ */
+
 class ConvertCommand extends \Doctrine\DBAL\Tools\Console\Command\ImportCommand
 {
     protected function configure()
@@ -20,85 +26,94 @@ class ConvertCommand extends \Doctrine\DBAL\Tools\Console\Command\ImportCommand
         $this
             ->setName('extbaser:convert')
             ->setDescription('Convert a database scheme to a TYPO3 Extbase Extension.')
-            ->addArgument(
-                'dbname',
-                InputArgument::REQUIRED,
-                'Who do you want to greet?'
-            )
-            ->addArgument(
-                'user',
-                InputArgument::REQUIRED,
-                'Who do you want to greet?'
-            )
-            ->addArgument(
-                'password',
-                InputArgument::OPTIONAL,
-                'Who do you want to greet?'
-            )
-            ->addOption(
-               'host',
-               null,
-               InputOption::VALUE_NONE,
-               'If set, the task will yell in uppercase letters'
-            )
-            ->addOption(
-               'driver',
-               null,
-               InputOption::VALUE_NONE,
-               'If set, the task will yell in uppercase letters'
-            )
-            ->addOption(
-               'port',
-               null,
-               InputOption::VALUE_NONE,
-               'If set, the task will yell in uppercase letters'
-            )
-        ;
+            ->addArgument('dbName', InputArgument::REQUIRED, 'The database name.')
+			->addArgument('extensionKey', InputArgument::REQUIRED, 'The target extension key.')
+			
+			->addOption('dbUser', null, InputOption::VALUE_OPTIONAL, 'The database user.')
+			->addOption('dbPassword', null, InputOption::VALUE_OPTIONAL, 'The database password.')
+            ->addOption('dbHost', null, InputOption::VALUE_OPTIONAL, 'The database host.')
+			->addOption('dbPort', null, InputOption::VALUE_OPTIONAL, 'The database port.')
+			->addOption('dbDriver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
+			->addOption('exportPath', null, InputOption::VALUE_OPTIONAL, 'The path to export the target extension to.')
+			
+			->addOption('em', null, InputOption::VALUE_OPTIONAL, 'The entity manager to use for this command')
+			->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
+			->addOption('force', null, InputOption::VALUE_NONE, 'Force to overwrite existing ExtensionBuilder.json.')
+		;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+    	$dbName = $input->getArgument('dbName');
+		$extensionKey = $input->getArgument('extensionKey');
+		
         //defaults
-        $driver = 'pdo_mysql';
-        $host = '127.0.0.1';
-        $port= null;
-        
-        if ($input->getOption('driver')) {
-            $driver = $input->getOption('driver');
-        }
-        if ($input->getOption('host')) {
-            $host = $input->getOption('host');
-        }
-        if ($input->getOption('port')) {
-            $port = $input->getOption('driver');
-        }
+        $dbUser = $input->getOption('dbUser') ? $input->getOption('dbUser'): 'root'; 
+		$dbPassword = $input->getOption('dbPassword') ? $input->getOption('dbPassword') : null;
+		$dbHost = $input->getOption('dbHost') ? $input->getOption('dbHost') : '127.0.0.1';
+		$dbPort = $input->getOption('dbPort') ? $input->getOption('dbPort') : null;
+		$dbDriver = $input->getOption('dbDriver') ? $input->getOption('dbDriver') : 'pdo_mysql';
+		$exportPath = $input->getOption('exportPath') ? $input->getOption('exportPath') : '.';
+		
+		$path =  $exportPath.'/'.$extensionKey;
         
         $config = new \Doctrine\DBAL\Configuration();
 
         $connectionParams = array(
-            'dbname' => $input->getArgument('dbname'),
-            'user' => $input->getArgument('user'),
-            'password' => $input->getArgument('password'),
-            'host' => $host,
-            'driver' => $driver,
-            'port' => $port
+            'dbname' => $dbName,
+            'user' => $dbUser,
+            'password' => $dbPassword,
+            'host' => $dbHost,
+            'driver' => $dbDriver,
+            'port' => $dbPort
         );
-        
-        $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 
         $config = Setup::createAnnotationMetadataConfiguration(array('.'), false);
-		$entityManager = EntityManager::create($connectionParams, $config);
+		$em = EntityManager::create($connectionParams, $config);
+		
+		$em->getConfiguration()->setMetadataDriverImpl(
+		    new \Doctrine\ORM\Mapping\Driver\DatabaseDriver(
+		        $em->getConnection()->getSchemaManager()
+		    )
+		);
+		
+		$emName = $input->getOption('em');
+		$emName = $emName ? $emName : 'default';
+		
+		$exporter = new ExtbaseExporter();
         
         $cmf = new DisconnectedClassMetadataFactory();
-        $cmf->setEntityManager($entityManager);
-        $metadata = $cmf->getAllMetadata();
-        
+        $cmf->setEntityManager($em);
+		
+		$metadata = $cmf->getAllMetadata();
+        $metadata = MetadataFilter::filter($metadata, $input->getOption('filter'));
+
         if ($metadata) {
             $output->writeln(sprintf('Importing mapping information from "<info>%s</info>" entity manager', $emName));
-            foreach ($metadata as $class) {
-                /*$className = $class->name;
-                $class->name = $bundle->getNamespace().'\\Entity\\'.$className;*/
+			
+			$filename = $path.'/'.ExtbaseExporter::PROJECT_FILE_NAME;
+			
+			if (!is_dir($dir = dirname($filename))) {
+                mkdir($dir, 0777, true);
             }
+			
+			if (is_readable($filename) && !$input->getOption('force'))
+			{
+				$output->writeln(sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename), 'ERROR');
+            	$output->writeln('', 'ERROR');
+            	return 1;
+			}
+			
+			$exporter->setExtensionKey($extensionKey);
+			$exporter->setMetadata($metadata);
+			
+			$json = $exporter->exportJson();
+			foreach ($exporter->getLogs() as $log) {
+				$output->writeln('--'.$log);
+			} 
+			
+			file_put_contents($filename, $json);
+
             return 0;
         } else {
             $output->writeln('Database does not have any mapping information.', 'ERROR');
