@@ -13,8 +13,9 @@
         "doctrine/orm": "*"
     },
     "autoload": {
-        "psr-0": {  "EdRush\\Extbaser\\": "lib/",
-                    "EBT\\ExtensionBuilder\\": "lib/"
+        "psr-0": {  "EdRush\\Extbaser\\": "lib/"
+        },
+        "psr-4": {  "EBT\\ExtensionBuilder\\": "lib/EBT/extension_builder/Classes"
         }
     },
     "scripts": {
