@@ -2,6 +2,8 @@
 
 namespace EdRush\Extbaser;
 
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration;
+
 class ExtbaseExporter
 {
     const PROJECT_FILE_NAME = 'ExtensionBuilder.json';
@@ -38,14 +40,26 @@ class ExtbaseExporter
         if (!is_dir($dir = dirname($filename))) {
             mkdir($dir, 0777, true);
         }
+        
+        $configuration = new ExtensionBuilderConfiguration();
 
-        if (is_readable($filename) && !$this->overwriteExistingFiles) {
-            $this->logs[] = sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename);
-
-            return 1;
+        if (is_readable($filename))
+        {
+        	
+        	if ( !$this->overwriteExistingFiles) {
+            	$this->logs[] = sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename);
+            	return 1;
+        	} else {
+        		
+        		$roundtripContents = json_decode(file_get_contents($filename), true);
+        		
+        		$configuration->setProperties($roundtripContents['properties']);
+        		$configuration->setWires($roundtripContents['wires']);
+        		$configuration->setLog($roundtripContents['log']);
+        		
+        	}
+        	
         }
-
-        $configuration = array();
 
         foreach ($this->metadata as $class) {
         	$className = $class->name;
@@ -55,10 +69,15 @@ class ExtbaseExporter
 			$module['config']['position'] = array(100,100);
 			$module['name'] = $className;
 
-            $configuration['modules'][] = $module;
+            $configuration->addModule($module);
         }
 
-        file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));
+        file_put_contents($filename, json_encode(array(
+        		'modules' => $configuration->getModules(),
+        		'properties' => $configuration->getProperties(),
+        		'wires' => $configuration->getWires(),
+        		'log' => $configuration->getLog(),
+        		), JSON_PRETTY_PRINT));
 
         return 0;
     }

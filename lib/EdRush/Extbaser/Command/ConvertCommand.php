@@ -35,7 +35,7 @@ class ConvertCommand extends \Doctrine\DBAL\Tools\Console\Command\ImportCommand
 
             ->addOption('em', null, InputOption::VALUE_OPTIONAL, 'The entity manager to use for this command')
             ->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Force to overwrite existing ExtensionBuilder.json.')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Force to overwrite modules of existing ExtensionBuilder.json (roundtrip).')
         ;
     }
 
