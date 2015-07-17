@@ -1,10 +1,11 @@
 <?php
 
-namespace EdRush\Extbaser\VO;
+namespace EdRush\Extbaser\VO\ExtensionBuilderConfiguration;
 
-use EdRush\Extbaser\VO\Module\Value;
-use EdRush\Extbaser\VO\Module\Config;
-use EdRush\Extbaser\VO\Module\Value\PropertyGroup\Property;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Config;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\PropertyGroup\Property;
+
 /**
  * @author weberius
  *

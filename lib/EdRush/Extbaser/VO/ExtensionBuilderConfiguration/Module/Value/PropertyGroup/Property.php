@@ -1,6 +1,6 @@
 <?php
 
-namespace EdRush\Extbaser\VO\Module\Value\PropertyGroup;
+namespace EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\PropertyGroup;
 
 /**
  * @author weberius

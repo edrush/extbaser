@@ -1,10 +1,11 @@
 <?php
 
-namespace EdRush\Extbaser\VO\Module;
+namespace EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module;
 
-use EdRush\Extbaser\VO\Module\Value\ActionGroup;
-use EdRush\Extbaser\VO\Module\Value\ObjectSettings;
-use EdRush\Extbaser\VO\Module\Value\PropertyGroup;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\ActionGroup;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\ObjectSettings;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\PropertyGroup;
+
 /**
  * @author weberius
  *

@@ -1,6 +1,6 @@
 <?php
 
-namespace EdRush\Extbaser\VO\Module\Value;
+namespace EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value;
 
 /**
  * @author weberius

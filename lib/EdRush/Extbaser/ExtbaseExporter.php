@@ -3,8 +3,10 @@
 namespace EdRush\Extbaser;
 
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration;
-use EdRush\Extbaser\VO\Module;
-use EdRush\Extbaser\VO\Module\Value\PropertyGroup\Property;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\PropertyGroup\Property;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
 
 class ExtbaseExporter
 {
@@ -53,23 +55,28 @@ class ExtbaseExporter
         {
         	
         	if ( !$this->overwriteExistingFiles) {
-            	$this->logs[] = sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename);
+            	
+        		$this->logs[] = sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename);
             	return 1;
         	} else {
         		
         		$roundtripContents = json_decode(file_get_contents($filename), true);
         		
-        		$configuration->setProperties($roundtripContents['properties']);
+        		$configuration->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
+        		$configuration->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
+        		
         		$configuration->setWires($roundtripContents['wires']);
-        		$configuration->setLog($roundtripContents['log']);
         		
         	}
         	
         }
-
+        
+        $configuration->setExtensionKey($this->extensionKey);
+        $configuration->setLastModified(date('Y-m-d H:i'));
+        
         foreach ($this->metadata as $metadata) {
         	$className = $metadata->name;
-// 			$this->logs[] = 'Processing '.$className;
+			$this->logs[] = 'Processing '.$className;
 			
             $module = new Module();
             $module->setName($className);
@@ -122,6 +129,15 @@ class ExtbaseExporter
     	
     	$uid =  rand (100000000000, 999999999999);
     	return (string) $uid;
+    }
+    
+    protected function mapArrayToClass ($array, $class) {
+    	
+    	foreach ($array as $key => $value) {
+    		$class->{$key} = $value;
+    	}
+    	
+    	return $class;
     }
 
     public function getMetadata()

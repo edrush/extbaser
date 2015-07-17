@@ -2,6 +2,9 @@
 
 namespace EdRush\Extbaser\VO;
 
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
 /**
  * @author weberius
  *
@@ -14,9 +17,9 @@ class ExtensionBuilderConfiguration
 	public $modules = array();
 	
 	/**
-	 * @var array
+	 * @var Properties
 	 */
-	public $properties = array();
+	public $properties;
 	
 	/**
 	 * @var array
@@ -24,12 +27,37 @@ class ExtensionBuilderConfiguration
 	public $wires = array();
 	
 	/**
-	 * @var array
+	 * @var Log
 	 */
-	public $log = array();
+	public $log;
+	
+	public function __construct() {
+		$this->properties = new Properties();
+		$this->log = new Log();
+	}
 	
 	public function addModule(Module $module) {
 		$this->modules[] = $module;
+		return $this;
+	}
+	
+	/**
+	 * Extension key is in $this->properties
+	 *
+	 * @return ExtensionBuilderConfiguration
+	 */
+	public function setExtensionKey($extensionKey) {
+		$this->properties->setExtensionKey($extensionKey);
+		return $this;
+	}
+	
+	/**
+	 * Last modified is in $this->log
+	 *
+	 * @return ExtensionBuilderConfiguration
+	 */
+	public function setLastModified($last_modified) {
+		$this->log->setLastModified($last_modified);
 		return $this;
 	}
 	
@@ -43,7 +71,7 @@ class ExtensionBuilderConfiguration
 	public function getProperties() {
 		return $this->properties;
 	}
-	public function setProperties(array $properties) {
+	public function setProperties(Properties $properties) {
 		$this->properties = $properties;
 		return $this;
 	}
@@ -57,7 +85,7 @@ class ExtensionBuilderConfiguration
 	public function getLog() {
 		return $this->log;
 	}
-	public function setLog(array $log) {
+	public function setLog(Log $log) {
 		$this->log = $log;
 		return $this;
 	}
