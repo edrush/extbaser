@@ -12,7 +12,7 @@ class PropertyGroup {
 	/**
 	 * @var Property[]
 	 */
-	protected $properties;
+	public $properties;
 	
 	public function addProperty(Property $property) {
 		$this->properties[] = $property;

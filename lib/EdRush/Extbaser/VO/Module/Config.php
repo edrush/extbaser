@@ -11,7 +11,7 @@ class Config {
 	/**
 	 * @var array
 	 */
-	protected $position;
+	public $position;
 
 	public function getPosition() {
 		return $this->position;

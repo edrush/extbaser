@@ -11,32 +11,32 @@ class ActionGroup {
 	/**
 	 * @var bool
 	 */
-	protected $_default0_list = true;
+	public $_default0_list = true;
 	
 	/**
 	 * @var bool
 	 */
-	protected $_default1_show = false;
+	public $_default1_show = false;
 	
 	/**
 	 * @var bool
 	 */
-	protected $_default2_new_create = false;
+	public $_default2_new_create = false;
 	
 	/**
 	 * @var bool
 	 */
-	protected $_default3_edit_update = false;
+	public $_default3_edit_update = false;
 	
 	/**
 	 * @var bool
 	 */
-	protected $_default4_delete = false;
+	public $_default4_delete = false;
 	
 	/**
 	 * @var string[]
 	 */
-	protected $customActions = array();
+	public $customActions = array();
 	
 	public function getDefault0List() {
 		return $this->_default0_list;

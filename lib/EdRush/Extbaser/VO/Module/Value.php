@@ -14,22 +14,22 @@ class Value {
 	/**
 	 * @var ActionGroup
 	 */
-	protected $actionGroup;
+	public $actionGroup;
 	
 	/**
 	 * @var string
 	 */
-	protected $name;
+	public $name;
 	
 	/**
 	 * @var ObjectSettings
 	 */
-	protected $objectSettings;
+	public $objectSettings;
 	
 	/**
 	 * @var PropertyGroup
 	 */
-	protected $propertyGroup;
+	public $propertyGroup;
 	
 	public function __construct() {
 		$this->actionGroup = new ActionGroup();

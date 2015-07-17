@@ -8,47 +8,45 @@ namespace EdRush\Extbaser\VO\Module\Value\PropertyGroup;
  */
 class Property {
 	
-	const TYPE_STRING = 'String';
-
 	/**
 	 * @var string
 	 */
-	protected $allowedFileTypes = '';
-	
-	/**
-	 * @var int
-	 */
-	protected $maxItems = 1;
+	public $allowedFileTypes = '';
 	
 	/**
 	 * @var string
 	 */
-	protected $propertyDescription;
+	public $maxItems = '1';
+	
+	/**
+	 * @var string
+	 */
+	public $propertyDescription = '';
 	
 	/**
 	 * @var bool
 	 */
-	protected $propertyIsExcludeField = false;
+	public $propertyIsExcludeField = false;
 	
 	/**
 	 * @var bool
 	 */
-	protected $propertyIsRequired = false;
+	public $propertyIsRequired = false;
 	
 	/**
 	 * @var string
 	 */
-	protected $propertyName = '';
+	public $propertyName = '';
 	
 	/**
 	 * @var string
 	 */
-	protected $propertyType = '';
+	public $propertyType = '';
 	
 	/**
-	 * @var int
+	 * @var string
 	 */
-	protected $uid = 0;
+	public $uid = '0';
 	
 	public function getAllowedFileTypes() {
 		return $this->allowedFileTypes;

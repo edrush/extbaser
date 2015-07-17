@@ -11,57 +11,57 @@ class ObjectSettings {
 	/**
 	 * @var bool
 	 */
-	protected $addDeletedField = true;
+	public $addDeletedField = true;
 	
 	/**
 	 * @var bool
 	 */
-	protected $addHiddenField = true;
+	public $addHiddenField = true;
 	
 	/**
 	 * @var bool
 	 */
-	protected $addStarttimeEndtimeFields = true;
+	public $addStarttimeEndtimeFields = true;
 	
 	/**
 	 * @var bool
 	 */
-	protected $aggregateRoot = true;
+	public $aggregateRoot = true;
 	
 	/**
 	 * @var bool
 	 */
-	protected $categorizable = false;
+	public $categorizable = false;
 	
 	/**
 	 * @var string
 	 */
-	protected $description = '';
+	public $description = '';
 	
 	/**
 	 * @var string
 	 */
-	protected $mapToTable = '';
+	public $mapToTable = '';
 	
 	/**
 	 * @var string
 	 */
-	protected $parentClass = '';
+	public $parentClass = '';
 	
 	/**
 	 * @var bool
 	 */
-	protected $sorting = false;
+	public $sorting = false;
 	
 	/**
 	 * @var string
 	 */
-	protected $type = '';
+	public $type = '';
 	
 	/**
-	 * @var int
+	 * @var string
 	 */
-	protected $uid = 0;
+	public $uid = '0';
 	
 	public function getAddDeletedField() {
 		return $this->addDeletedField;

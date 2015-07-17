@@ -11,22 +11,22 @@ class ExtensionBuilderConfiguration
 	/**
 	 * @var Module[]
 	 */
-	protected $modules = array();
+	public $modules = array();
 	
 	/**
 	 * @var array
 	 */
-	protected $properties = array();
+	public $properties = array();
 	
 	/**
 	 * @var array
 	 */
-	protected $wires = array();
+	public $wires = array();
 	
 	/**
 	 * @var array
 	 */
-	protected $log = array();
+	public $log = array();
 	
 	public function addModule(Module $module) {
 		$this->modules[] = $module;

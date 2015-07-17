@@ -16,41 +16,41 @@ use EdRush\Extbaser\ExtbaseExporter;
 /**
  * @todo Handle multiple relations from one table to another for import (Doctrine error "Property xy already declared, must be declared only once...").
  */
-class ConvertCommand extends \Doctrine\DBAL\Tools\Console\Command\ImportCommand
+class ConvertCommand extends Command
 {
     protected function configure()
     {
         $this
             ->setName('extbaser:convert')
             ->setDescription('Convert a database scheme to a TYPO3 Extbase Extension.')
-            ->addArgument('dbName', InputArgument::REQUIRED, 'The database name.')
-            ->addArgument('extensionKey', InputArgument::REQUIRED, 'The target extension key.')
+            ->addArgument('dbname', InputArgument::REQUIRED, 'The database name.')
+            ->addArgument('extensionkey', InputArgument::REQUIRED, 'The target extension key.')
 
-            ->addOption('dbUser', null, InputOption::VALUE_OPTIONAL, 'The database user.')
-            ->addOption('dbPassword', null, InputOption::VALUE_OPTIONAL, 'The database password.')
-            ->addOption('dbHost', null, InputOption::VALUE_OPTIONAL, 'The database host.')
-            ->addOption('dbPort', null, InputOption::VALUE_OPTIONAL, 'The database port.')
-            ->addOption('dbDriver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
-            ->addOption('exportPath', null, InputOption::VALUE_OPTIONAL, 'The path to export the target extension to.')
+            ->addOption('user', null, InputOption::VALUE_OPTIONAL, 'The database user.')
+            ->addOption('password', null, InputOption::VALUE_OPTIONAL, 'The database password.')
+            ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host.')
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port.')
+            ->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
+            ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the target extension to.')
 
             ->addOption('em', null, InputOption::VALUE_OPTIONAL, 'The entity manager to use for this command')
             ->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Force to overwrite existing ExtensionBuilder.json.')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force to overwrite modules of existing ExtensionBuilder.json (roundtrip).')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $dbName = $input->getArgument('dbName');
-        $extensionKey = $input->getArgument('extensionKey');
+        $dbName = $input->getArgument('dbname');
+        $extensionKey = $input->getArgument('extensionkey');
 
         //defaults
-        $dbUser = $input->getOption('dbUser') ? $input->getOption('dbUser') : 'root';
-        $dbPassword = $input->getOption('dbPassword') ? $input->getOption('dbPassword') : null;
-        $dbHost = $input->getOption('dbHost') ? $input->getOption('dbHost') : '127.0.0.1';
-        $dbPort = $input->getOption('dbPort') ? $input->getOption('dbPort') : null;
-        $dbDriver = $input->getOption('dbDriver') ? $input->getOption('dbDriver') : 'pdo_mysql';
-        $exportPath = $input->getOption('exportPath') ? $input->getOption('exportPath') : '.';
+        $dbUser = $input->getOption('user') ? $input->getOption('user') : 'root';
+        $dbPassword = $input->getOption('password') ? $input->getOption('password') : null;
+        $dbHost = $input->getOption('host') ? $input->getOption('host') : '127.0.0.1';
+        $dbPort = $input->getOption('port') ? $input->getOption('port') : null;
+        $dbDriver = $input->getOption('driver') ? $input->getOption('driver') : 'pdo_mysql';
+        $exportPath = $input->getOption('path') ? $input->getOption('path') : '.';
 
         $config = new \Doctrine\DBAL\Configuration();
 
