@@ -25,6 +25,11 @@ class Module {
 	 */
 	protected $value;
 	
+	public function __construct() {
+		$this->config = new Config();
+		$this->value = new Value();
+	}
+	
 	public function getConfig() {
 		return $this->config;
 	}

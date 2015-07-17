@@ -31,6 +31,12 @@ class Value {
 	 */
 	protected $propertyGroup;
 	
+	public function __construct() {
+		$this->actionGroup = new ActionGroup();
+		$this->objectSettings = new ObjectSettings();
+		$this->propertyGroup = new PropertyGroup();
+	}
+	
 	public function getActionGroup() {
 		return $this->actionGroup;
 	}
