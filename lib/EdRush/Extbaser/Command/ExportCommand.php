@@ -13,27 +13,24 @@ use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
 use EdRush\Extbaser\ExtbaseExporter;
 
-/**
- * @todo Handle multiple relations from one table to another for import (Doctrine error "Property xy already declared, must be declared only once...").
- */
-class ConvertCommand extends Command
+class ExportCommand extends Command
 {
     protected function configure()
     {
         $this
-            ->setName('extbaser:convert')
-            ->setDescription('Convert a database scheme to a TYPO3 Extbase Extension.')
+            ->setName('extbaser:export')
+            ->setDescription('Export a database scheme to a TYPO3 Extbase extension.')
             ->addArgument('dbname', InputArgument::REQUIRED, 'The database name.')
-            ->addArgument('extensionkey', InputArgument::REQUIRED, 'The target extension key.')
+            ->addArgument('extension-key', InputArgument::REQUIRED, 'The target extension key.')
 
+            //db connection parameters
             ->addOption('user', null, InputOption::VALUE_OPTIONAL, 'The database user.')
             ->addOption('password', null, InputOption::VALUE_OPTIONAL, 'The database password.')
             ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host.')
             ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port.')
             ->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
+            
             ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the target extension to.')
-
-            ->addOption('em', null, InputOption::VALUE_OPTIONAL, 'The entity manager to use for this command')
             ->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force to overwrite modules of existing ExtensionBuilder.json (roundtrip).')
         ;
@@ -42,17 +39,16 @@ class ConvertCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $dbName = $input->getArgument('dbname');
-        $extensionKey = $input->getArgument('extensionkey');
+        $extensionKey = $input->getArgument('extension-key');
 
-        //defaults
+        //db defaults
         $dbUser = $input->getOption('user') ? $input->getOption('user') : 'root';
         $dbPassword = $input->getOption('password') ? $input->getOption('password') : null;
         $dbHost = $input->getOption('host') ? $input->getOption('host') : '127.0.0.1';
         $dbPort = $input->getOption('port') ? $input->getOption('port') : null;
         $dbDriver = $input->getOption('driver') ? $input->getOption('driver') : 'pdo_mysql';
+        
         $exportPath = $input->getOption('path') ? $input->getOption('path') : '.';
-
-        $config = new \Doctrine\DBAL\Configuration();
 
         $connectionParams = array(
             'dbname' => $dbName,
@@ -71,40 +67,24 @@ class ConvertCommand extends Command
                 $em->getConnection()->getSchemaManager()
             )
         );
-
-        $emName = $input->getOption('em');
-        $emName = $emName ? $emName : 'default';
-
-        $exporter = new ExtbaseExporter();
-        $exporter->setExtensionKey($extensionKey);
-        $exporter->setPath($exportPath);
-        $exporter->setOverwriteExistingFiles($input->getOption('force'));
         
-        //allow sonata type 'json'
-        \Doctrine\DBAL\Types\Type::addType('json', 'Sonata\Doctrine\Types\JsonType');
-
         $cmf = new DisconnectedClassMetadataFactory();
         $cmf->setEntityManager($em);
 
-        $metadata = $cmf->getAllMetadata();
-        $metadata = MetadataFilter::filter($metadata, $input->getOption('filter'));
-
-        if ($metadata) {
-            $exporter->setMetadata($metadata);
-            $output->writeln(sprintf('Importing mapping information from "<info>%s</info>" entity manager', $emName));
-
-            $result = $exporter->exportJson();
-
-            foreach ($exporter->getLogs() as $log) {
-                $output->writeln('--'.$log);
-            }
-
-            return $result;
-        } else {
-            $output->writeln('Database does not have any mapping information.', 'ERROR');
-            $output->writeln('', 'ERROR');
-
-            return 1;
+        $exporter = new ExtbaseExporter($cmf);
+        $exporter->setExtensionKey($extensionKey);
+        $exporter->setPath($exportPath);
+        $exporter->setOverwriteExistingFiles($input->getOption('force'));
+        $exporter->setFilter($input->getOption('filter'));
+        
+        $output->writeln(sprintf('Exporting scheme from database "<info>%s</info>".', $dbName));
+        
+        $result = $exporter->exportJson();
+        
+        foreach ($exporter->getLogs() as $log) {
+        	$output->writeln($log);
         }
+        
+        return $result? 0 : 1;
     }
 }

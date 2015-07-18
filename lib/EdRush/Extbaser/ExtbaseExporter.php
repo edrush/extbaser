@@ -7,6 +7,8 @@ use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\PropertyGroup\Property;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
+use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
+use Doctrine\ORM\Tools\Console\MetadataFilter;
 
 /**
  * 
@@ -23,88 +25,112 @@ class ExtbaseExporter
     );
 
     /**
-     * @var array
+     * @var DisconnectedClassMetadataFactory
      */
-    private $metadata = array();
+    protected $cmf;
+    
+    /**
+     * @var string
+     */
+    protected $extensionKey;
 
     /**
      * @var string
      */
-    private $extensionKey;
-
-    /**
-     * @var array
-     */
-    private $logs = array();
-
-    /**
-     * @var string
-     */
-    private $path;
+    protected $path;
 
     /**
      * @var bool
      */
-    private $overwriteExistingFiles = false;
+    protected $overwriteExistingFiles = false;
+    
+    /**
+     * @var string
+     */
+    protected $filter = '';
+    
+    /**
+     * @var array
+     */
+    protected $logs = array();
+    
+    public function __construct(DisconnectedClassMetadataFactory $cmf) {
+    	
+    	$this->cmf = $cmf;
+    	
+    	//allow sonata type 'json'
+    	\Doctrine\DBAL\Types\Type::addType('json', 'Sonata\Doctrine\Types\JsonType');
+    }
 
-    public function exportJson()
-    {
-        $filename = $this->path.'/'.$this->extensionKey.'/'.self::PROJECT_FILE_NAME;
+    public function exportJson() {
+    	
+    	$metadata = $this->cmf->getAllMetadata();
+    	$metadata = MetadataFilter::filter($metadata, $this->filter);
+    	
+    	if ($metadata) {
 
-        if (!is_dir($dir = dirname($filename))) {
-            mkdir($dir, 0777, true);
-        }
+    		$filename = $this->path.'/'.$this->extensionKey.'/'.self::PROJECT_FILE_NAME;
+    		
+    		if (!is_dir($dir = dirname($filename))) {
+    			mkdir($dir, 0777, true);
+    		}
+    		
+    		$configuration = new ExtensionBuilderConfiguration();
+    		
+    		if (is_readable($filename))
+    		{
+    			if ( !$this->overwriteExistingFiles) {
+    				 
+    				$this->logs[] = sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename);
+    				return 1;
+    			} else {
+    		
+    				$roundtripContents = json_decode(file_get_contents($filename), true);
+    		
+    				$configuration->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
+    				$configuration->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
+    		
+    				$configuration->setWires($roundtripContents['wires']);
+    		
+    			}
+    			 
+    		}
+    		
+    		$configuration->setExtensionKey($this->extensionKey);
+    		$configuration->setLastModified(date('Y-m-d H:i'));
+    		
+    		foreach ($metadata as $metadata) {
+    			$className = $metadata->name;
+    			$this->logs[] = sprintf('--processing table "<info>%s</info>" ...', $className);
+    				
+    			$module = new Module();
+    			$module->setName($className);
+    			$module->setPosition(array(100,100));
+    			$module->setUid($this->getRandomUid());
+    		
+    			foreach ($metadata->fieldMappings as $fieldMapping) {
+    				$property = new Property();
+    				 
+    				$property->setPropertyName($fieldMapping['fieldName']);
+    				$property->setPropertyType($this->getPropertyType($fieldMapping['type']));
+    				$property->setUid($this->getRandomUid());
+    				 
+    				$module->addProperty($property);
+    			}
+    		
+    			$configuration->addModule($module);
+    		}
+    		
+    		file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));
+    		
+    		$this->logs[] = 'Exported database scheme to '.$filename;
+    		
+    		return true;
+    	} else {
+    		$this->logs[] = 'Database does not have any mapping information.';
+    		return false;
+    	}
         
-        $configuration = new ExtensionBuilderConfiguration();
-
-        if (is_readable($filename))
-        {
-        	
-        	if ( !$this->overwriteExistingFiles) {
-            	
-        		$this->logs[] = sprintf('File "<info>%s</info>" already existing, use --force to replace it.', $filename);
-            	return 1;
-        	} else {
-        		
-        		$roundtripContents = json_decode(file_get_contents($filename), true);
-        		
-        		$configuration->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
-        		$configuration->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
-        		
-        		$configuration->setWires($roundtripContents['wires']);
-        		
-        	}
-        	
-        }
-        
-        $configuration->setExtensionKey($this->extensionKey);
-        $configuration->setLastModified(date('Y-m-d H:i'));
-        
-        foreach ($this->metadata as $metadata) {
-        	$className = $metadata->name;
-			$this->logs[] = 'Processing '.$className;
-			
-            $module = new Module();
-            $module->setName($className);
-            $module->setPosition(array(100,100));
-            $module->setUid($this->getRandomUid());
-            
-            foreach ($metadata->fieldMappings as $fieldMapping) {
-            	$property = new Property();
-            	
-            	$property->setPropertyName($fieldMapping['fieldName']);
-            	$property->setPropertyType($this->getPropertyType($fieldMapping['type']));
-            	$property->setUid($this->getRandomUid());
-            	
-            	$module->addProperty($property);
-            }
-
-            $configuration->addModule($module);
-        }
-
-        file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));
-
-        return 0;
     }
     
     /**
@@ -210,4 +236,20 @@ class ExtbaseExporter
     {
         $this->overwriteExistingFiles = $overwriteExistingFiles;
     }
+	public function getFilter() {
+		return $this->filter;
+	}
+	public function setFilter($filter) {
+		$this->filter = $filter;
+		return $this;
+	}
+	public function getCmf() {
+		return $this->cmf;
+	}
+	public function setCmf(DisconnectedClassMetadataFactory $cmf) {
+		$this->cmf = $cmf;
+		return $this;
+	}
+	
+	
 }
