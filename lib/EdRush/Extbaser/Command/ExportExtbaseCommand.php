@@ -13,7 +13,7 @@ use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
 use EdRush\Extbaser\ExtbaseExporter;
 
-class ExportCommand extends Command
+class ExportExtbaseCommand extends Command
 {
     protected function configure()
     {
