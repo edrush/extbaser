@@ -1,3 +1,0 @@
-[submodule "lib/EBT/extension_builder"]
-	path = lib/EBT/extension_builder
-	url = https://github.com/TYPO3-extensions/extension_builder

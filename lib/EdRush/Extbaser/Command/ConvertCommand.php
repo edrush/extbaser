@@ -79,6 +79,9 @@ class ConvertCommand extends Command
         $exporter->setExtensionKey($extensionKey);
         $exporter->setPath($exportPath);
         $exporter->setOverwriteExistingFiles($input->getOption('force'));
+        
+        //allow sonata type 'json'
+        \Doctrine\DBAL\Types\Type::addType('json', 'Sonata\Doctrine\Types\JsonType');
 
         $cmf = new DisconnectedClassMetadataFactory();
         $cmf->setEntityManager($em);

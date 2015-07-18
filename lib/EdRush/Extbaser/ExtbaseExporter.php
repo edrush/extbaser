@@ -8,6 +8,12 @@ use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\PropertyGroup\
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
 
+/**
+ * 
+ * ExtbaseExporter
+ * 
+ * @author weberius
+ */
 class ExtbaseExporter
 {
     const PROJECT_FILE_NAME = 'ExtensionBuilder.json';
