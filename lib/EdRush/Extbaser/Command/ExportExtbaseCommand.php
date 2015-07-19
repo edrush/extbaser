@@ -19,18 +19,18 @@ class ExportExtbaseCommand extends Command
     {
     	$this
 	    	->setName('extbaser:export')
-	    	->setDescription('Export an existing database scheme to a TYPO3 Extbase extension project.')
+	    	->setDescription('Export an existing database schema to a TYPO3 Extbase Extension.')
 	    	
 	    	->addArgument('dbname', InputArgument::REQUIRED, 'The database name.')
-	    	->addArgument('extension-key', InputArgument::REQUIRED, 'The target TYPO3 extension key.')
+	    	->addArgument('extension-key', InputArgument::REQUIRED, 'The target TYPO3 Extension key.')
 	    	
 	    	->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to.')
 	    	->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
 	    	->addOption('force', 'f', InputOption::VALUE_NONE, 'Roundtrip existing project.')
 	    	
 	    	//db connection parameters
-	    	->addOption('user', null, InputOption::VALUE_OPTIONAL, 'The database user.')
-	    	->addOption('password', null, InputOption::VALUE_OPTIONAL, 'The database password.')
+	    	->addOption('user', 'u', InputOption::VALUE_OPTIONAL, 'The database user.')
+	    	->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'The database password.')
 	    	->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host.')
 	    	->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port.')
 	    	->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
@@ -78,7 +78,7 @@ class ExportExtbaseCommand extends Command
         $exporter->setOverwriteExistingFiles($input->getOption('force'));
         $exporter->setFilter($input->getOption('filter'));
         
-        $output->writeln(sprintf('Exporting scheme from database "<info>%s</info>".', $dbName));
+        $output->writeln(sprintf('Exporting database schema "<info>%s</info>".', $dbName));
         
         $result = $exporter->exportJson();
         

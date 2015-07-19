@@ -125,7 +125,7 @@ class ExtbaseExporter
     		
     		file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));
     		
-    		$this->logs[] = 'Exported database scheme to '.$filename;
+    		$this->logs[] = 'Exported database schema to '.$filename;
     		
     		return true;
     	} else {

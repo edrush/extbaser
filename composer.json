@@ -1,7 +1,7 @@
 {
     "name": "edrush/extbaser",
     "type": "library",
-    "description": "Convert a database scheme to a TYPO3 Extbase Extension.",
+    "description": "Create a TYPO3 Extbase Extension from an existing database schema.",
     "keywords": ["orm", "database", "extbase"],
     "license": "GPL",
     "authors": [
