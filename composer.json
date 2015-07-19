@@ -10,7 +10,6 @@
             "email": "edrush@posteo.de"    
         }
     ],
-    "version": "0.0.1",
     "require": {
         "php": ">= 5.4.0",
         "doctrine/orm": "*",
