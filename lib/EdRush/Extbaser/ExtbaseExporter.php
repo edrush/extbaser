@@ -59,7 +59,9 @@ class ExtbaseExporter
     	$this->cmf = $cmf;
     	
     	//allow sonata type 'json'
-    	\Doctrine\DBAL\Types\Type::addType('json', 'Sonata\Doctrine\Types\JsonType');
+    	if (!\Doctrine\DBAL\Types\Type::hasType('json')) {
+    		\Doctrine\DBAL\Types\Type::addType('json', 'Sonata\Doctrine\Types\JsonType');
+    	}
     }
 
     public function exportJson() {
