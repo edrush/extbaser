@@ -23,7 +23,7 @@ class ExportExtbaseCommand extends Command
 	public static function getDefaultInputOptions()
 	{
 		$inputOptions = array(
-			new InputOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to', '.'),
+			new InputOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to'),
 			new InputOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped'),
 			new InputOption('force', 'f', InputOption::VALUE_NONE, 'Roundtrip existing extension'),
 		);
@@ -65,6 +65,8 @@ class ExportExtbaseCommand extends Command
         $dbPort = $input->getOption('port') ? $input->getOption('port') : null;
         $dbDriver = $input->getOption('driver') ? $input->getOption('driver') : 'pdo_mysql';
         
+        $exportPath = $input->getOption('path') ? $input->getOption('path') : '.';
+        
         $connectionParams = array(
             'dbname' => $dbName,
             'user' => $dbUser,
@@ -88,7 +90,7 @@ class ExportExtbaseCommand extends Command
 
         $exporter = new ExtbaseExporter($cmf);
         $exporter->setExtensionKey($input->getArgument('extension-key'));
-        $exporter->setPath($input->getOption('path'));
+        $exporter->setPath($exportPath);
         $exporter->setOverwriteExistingFiles($input->getOption('force'));
         $exporter->setFilter($input->getOption('filter'));
         

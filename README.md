@@ -12,7 +12,7 @@ composer require edrush/extbaser
 ### 1. Export your database schema to a TYPO3 Extension
 Configure your connection:
 ```
-php bin/app.php extbaser:export -u=username -p=password dbname target_extension_key
+php bin/app.php extbaser:export -u username -p password dbname target_extension_key
 ```
 Connection parameters default to [Symfony best practices](http://symfony.com/doc/current/best_practices/configuration.html):
 ```
