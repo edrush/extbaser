@@ -23,8 +23,8 @@ class ExportExtbaseCommand extends Command
     {
         $inputOptions = array(
             new InputOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped'),
-            new InputOption('force', 'f', InputOption::VALUE_NONE, 'Override existing extension'),
-            new InputOption('round-trip', 'r', InputOption::VALUE_NONE, 'Roundtrip existing extension'),
+            new InputOption('force', 'f', null, 'Override existing extension'),
+            new InputOption('round-trip', 'r', null, 'Roundtrip existing extension'),
         );
 
         return $inputOptions;

@@ -108,6 +108,12 @@ class ExtbaseExporter
 
             foreach ($metadata as $metadata) {
                 $className = $metadata->name;
+                //remove namespaces, e.g. when importing entities
+                if (class_exists($className)) {
+                    $reflection = new \ReflectionClass($metadata->name);
+                    $className = $reflection->getShortName();
+                }
+
                 $this->logs[] = sprintf('Processing table "<info>%s</info>"', $className);
 
                 $module = new Module();
