@@ -5,11 +5,13 @@ Create a TYPO3 Extbase Extension from an existing database scheme.
 ### 1. Export your database scheme to a TYPO3 extension
 If you have a basic [Symfony installation](http://symfony.com/doc/current/best_practices/configuration.html), you can use:
 ```
-php bin/app.php extbaser:export your_database_name your_new_extension_key```
+php bin/app.php extbaser:export your_database_name your_new_extension_key
+```
 
 Or configure your connection manually:
 ```
-php bin/app.php extbaser:export your_database_name your_new_extension_key --host=host --user=username --password=password```
+php bin/app.php extbaser:export your_database_name your_new_extension_key --host=host --user=username --password=password
+```
 
 The generated extension consists of a folder containing the file *ExtensionBuilder.json*, which is the project file for the *Extension Builder*, see below.
 
@@ -32,4 +34,5 @@ Extbaser also supports roundtriping of Extbase Extensions, which means that if y
 ## Help
 To see a list of all arguments you can pass to Extbaser, type:
 ```
-php bin/app.php extbaser:export --help```
+php bin/app.php extbaser:export --help
+```
