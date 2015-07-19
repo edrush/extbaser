@@ -13,7 +13,7 @@ Or configure your connection manually:
 php bin/app.php extbaser:export your_database_name your_new_extension_key --host=host --user=username --password=password
 ```
 
-The generated extension consists of a folder containing the file *ExtensionBuilder.json*, which is the project file for the *Extension Builder*, see below.
+The generated extension consists of a folder containing the file *ExtensionBuilder.json*, which is the project file for the *TYPO3 Extension Builder*, see below.
 
 ### 2. Upload the extension to your TYPO3 installation
 Move the generated folder to the 'typo3conf/ext' folder.
