@@ -17,23 +17,24 @@ class ExportExtbaseCommand extends Command
 {
     protected function configure()
     {
-        $this
-            ->setName('extbaser:export')
-            ->setDescription('Export a database scheme to a TYPO3 Extbase extension.')
-            ->addArgument('dbname', InputArgument::REQUIRED, 'The database name.')
-            ->addArgument('extension-key', InputArgument::REQUIRED, 'The target extension key.')
-
-            //db connection parameters
-            ->addOption('user', null, InputOption::VALUE_OPTIONAL, 'The database user.')
-            ->addOption('password', null, InputOption::VALUE_OPTIONAL, 'The database password.')
-            ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host.')
-            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port.')
-            ->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
-            
-            ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the target extension to.')
-            ->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force to overwrite modules of existing ExtensionBuilder.json (roundtrip).')
-        ;
+    	$this
+	    	->setName('extbaser:export')
+	    	->setDescription('Export an existing database scheme to a TYPO3 Extbase extension project.')
+	    	
+	    	->addArgument('dbname', InputArgument::REQUIRED, 'The database name.')
+	    	->addArgument('extension-key', InputArgument::REQUIRED, 'The target TYPO3 extension key.')
+	    	
+	    	->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to.')
+	    	->addOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.')
+	    	->addOption('force', 'f', InputOption::VALUE_NONE, 'Roundtrip existing project.')
+	    	
+	    	//db connection parameters
+	    	->addOption('user', null, InputOption::VALUE_OPTIONAL, 'The database user.')
+	    	->addOption('password', null, InputOption::VALUE_OPTIONAL, 'The database password.')
+	    	->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host.')
+	    	->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port.')
+	    	->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver.')
+    	;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

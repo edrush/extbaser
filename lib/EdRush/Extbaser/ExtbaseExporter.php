@@ -103,7 +103,7 @@ class ExtbaseExporter
     		
     		foreach ($metadata as $metadata) {
     			$className = $metadata->name;
-    			$this->logs[] = sprintf('--processing table "<info>%s</info>" ...', $className);
+    			$this->logs[] = sprintf('Processing table "<info>%s</info>"', $className);
     				
     			$module = new Module();
     			$module->setName($className);

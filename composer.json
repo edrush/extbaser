@@ -5,7 +5,10 @@
     "keywords": ["orm", "database", "extbase"],
     "license": "GPL",
     "authors": [
-        {"name": "Wolfram Eberius", "email": "edrush@posteo.de"}
+        {
+            "name": "Wolfram Eberius", 
+            "email": "edrush@posteo.de"    
+        }
     ],
     "version": "0.0.1",
     "require": {
