@@ -45,30 +45,6 @@ class ExtensionBuilderConfiguration
         return $this;
     }
 
-    /**
-     * Extension key is in $this->properties.
-     *
-     * @return ExtensionBuilderConfiguration
-     */
-    public function setExtensionKey($extensionKey)
-    {
-        $this->properties->setExtensionKey($extensionKey);
-
-        return $this;
-    }
-
-    /**
-     * Last modified is in $this->log.
-     *
-     * @return ExtensionBuilderConfiguration
-     */
-    public function setLastModified($last_modified)
-    {
-        $this->log->setLastModified($last_modified);
-
-        return $this;
-    }
-
     public function getModules()
     {
         return $this->modules;

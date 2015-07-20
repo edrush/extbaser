@@ -9,6 +9,8 @@ use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
 use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Tools\Console\MetadataFilter;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\RelationGroup\Relation;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 /**
  * ExtbaseExporter.
@@ -101,8 +103,10 @@ class ExtbaseExporter
                 }
             }
 
-            $configuration->setExtensionKey($this->extensionKey);
-            $configuration->setLastModified(date('Y-m-d H:i'));
+            $configuration->getProperties()
+                ->setExtensionKey($this->extensionKey);
+            $configuration->getLog()
+                ->setLastModified(date('Y-m-d H:i'));
 
             foreach ($metadata as $metadata) {
                 $className = $metadata->name;
@@ -115,10 +119,15 @@ class ExtbaseExporter
                 $this->logs[] = sprintf('Processing table "<info>%s</info>"', $className);
 
                 $module = new Module();
-                $module->setName($className);
-                $module->setPosition(array(100, 100));
-                $module->setUid($this->getRandomUid());
+                $module->getValue()
+                    ->setName($className);
+                $module->getConfig()
+                    ->setPosition(array(100, 100));
+                $module->getValue()
+                    ->getObjectsettings()
+                    ->setUid($this->getRandomUid());
 
+                //export properties
                 foreach ($metadata->fieldMappings as $fieldMapping) {
                     $property = new Property();
 
@@ -126,7 +135,41 @@ class ExtbaseExporter
                     $property->setPropertyType($this->getPropertyType($fieldMapping['type']));
                     $property->setUid($this->getRandomUid());
 
-                    $module->addProperty($property);
+                    $module->getValue()
+                        ->getPropertyGroup()
+                        ->addProperty($property);
+                }
+
+                //export relations
+                foreach ($metadata->associationMappings as $associationMapping) {
+                    $relation = new Relation();
+
+                    $relation->setRelationName($associationMapping['fieldName']);
+                    $relation->setUid($this->getRandomUid());
+
+                    if ($associationMapping['fetch'] == ClassMetadataInfo::FETCH_LAZY) {
+                        $relation->setLazyLoading(true);
+                    }
+
+                    $relationType = null;
+                    switch ($associationMapping['type']) {
+                        case ClassMetadataInfo::ONE_TO_MANY:
+                            $relationType = Relation::ONE_TO_MANY;
+                            break;
+                        case ClassMetadataInfo::MANY_TO_ONE:
+                            $relationType = Relation::MANY_TO_ONE;
+                            break;
+                        case ClassMetadataInfo::ONE_TO_ONE:
+                            $relationType = Relation::ONE_TO_ONE;
+                            break;
+                        case ClassMetadataInfo::MANY_TO_MANY:
+                            $relationType = Relation::MANY_TO_MANY;
+                            break;
+
+                    }
+                    $relation->setRelationType($relationType);
+
+                    $module->getValue()->getRelationGroup()->addRelation($relation);
                 }
 
                 $configuration->addModule($module);

@@ -21,12 +21,14 @@ class RelationGroup
         return $this;
     }
 
-	public function getRelations() {
-		return $this->relations;
-	}
-	public function setRelations($relations) {
-		$this->relations = $relations;
-		return $this;
-	}
-	
+    public function getRelations()
+    {
+        return $this->relations;
+    }
+    public function setRelations($relations)
+    {
+        $this->relations = $relations;
+
+        return $this;
+    }
 }
