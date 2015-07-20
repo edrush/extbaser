@@ -75,7 +75,7 @@ class Module
      */
     public function setUid($uid)
     {
-        $this->value->getObjectSettings()->setUid($uid);
+        $this->value->getObjectsettings()->setUid($uid);
 
         return $this;
     }

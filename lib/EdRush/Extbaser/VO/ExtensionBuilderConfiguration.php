@@ -5,6 +5,7 @@ namespace EdRush\Extbaser\VO;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
 
 /**
  * @author weberius
@@ -22,7 +23,7 @@ class ExtensionBuilderConfiguration
     public $properties;
 
     /**
-     * @var array
+     * @var Wire[]
      */
     public $wires = array();
 

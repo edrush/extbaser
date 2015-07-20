@@ -98,8 +98,6 @@ class ExtbaseExporter
 
                     $configuration->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
                     $configuration->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
-
-                    $configuration->setWires($roundtripContents['wires']);
                 }
             }
 
