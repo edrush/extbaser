@@ -7,6 +7,9 @@ namespace EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
  */
 class Node
 {
+    const TERMINAL_SRC = 'relationWire_';
+    const TERMINAL_TGT = 'SOURCES';
+
     /**
      * @var int
      */

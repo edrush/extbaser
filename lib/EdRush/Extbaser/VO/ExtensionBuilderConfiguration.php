@@ -45,6 +45,30 @@ class ExtensionBuilderConfiguration
         return $this;
     }
 
+    public function addWire(Wire $wire)
+    {
+        $this->wires[] = $wire;
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return \EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module|bool
+     */
+    public function getModuleByName($name)
+    {
+        foreach ($this->modules as $module) {
+            /* @var $module Module */
+            if ($name == $module->getValue()->getName()) {
+                return $module;
+            }
+        }
+
+        return false;
+    }
+
     public function getModules()
     {
         return $this->modules;

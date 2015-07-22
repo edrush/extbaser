@@ -11,6 +11,8 @@ use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Tools\Console\MetadataFilter;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\RelationGroup\Relation;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire\Node;
 
 /**
  * ExtbaseExporter.
@@ -108,11 +110,15 @@ class ExtbaseExporter
             $configuration->getLog()
                 ->setLastModified(date('Y-m-d H:i'));
 
+            //in this array we store the target entites for all relations to create wires later on
+            $relationTargetsByModuleByRelation = array();
+
+            $moduleIndex = 0;
             foreach ($metadata as $metadata) {
                 $className = $metadata->name;
                 //remove namespaces, e.g. when importing entities
                 if (class_exists($className)) {
-                    $reflection = new \ReflectionClass($metadata->name);
+                    $reflection = new \ReflectionClass($className);
                     $className = $reflection->getShortName();
                 }
 
@@ -141,6 +147,7 @@ class ExtbaseExporter
                 }
 
                 //export relations
+                $relationIndex = 0;
                 foreach ($metadata->associationMappings as $associationMapping) {
                     $relation = new Relation();
 
@@ -167,12 +174,60 @@ class ExtbaseExporter
                             break;
 
                     }
-                    $relation->setRelationType($relationType);
 
+                    $relation->setRelationType($relationType);
                     $module->getValue()->getRelationGroup()->addRelation($relation);
+
+                    $targetClassName = $associationMapping['targetEntity'];
+                    //remove namespaces, e.g. when importing entities
+                    if (class_exists($targetClassName)) {
+                    	$reflection = new \ReflectionClass($targetClassName);
+                    	$targetClassName = $reflection->getShortName();
+                    }
+                    $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex] = $targetClassName;
+                    $relationIndex++;
                 }
 
                 $configuration->addModule($module);
+
+                $moduleIndex++;
+            }
+
+            // now we have all the modules, we can craw wires
+            $moduleIndex = 0;
+            foreach ($configuration->getModules() as $key => $module) {
+                $relationIndex = 0;
+                foreach ($module->getValue()->getRelationGroup()->getRelations() as $relation) {
+
+                    // now add the corresponding wire for the relation
+                    $wire = new Wire();
+                    $targetEntity= $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex];
+                    $targetModule = $configuration->getModuleByName($targetEntity);
+                    
+                    if ($targetModule) {
+                    	
+                    	$targetModuleId = array_search($targetModule, $configuration->getModules());
+                    
+	                    $src = new Node();
+	                    $src->setModuleId($key);
+	                    $src->setTerminal(Node::TERMINAL_SRC.$relationIndex);
+	                    $src->setUid($module->getValue()->getObjectsettings()->getUid());
+	
+	                    $tgt = new Node();
+	                    $tgt->setModuleId($targetModuleId);
+	                    $tgt->setTerminal(Node::TERMINAL_TGT);
+	                    $tgt->setUid($targetModule->getValue()->getObjectsettings()->getUid());
+	
+	                    $wire->setSrc($src);
+	                    $wire->setTgt($tgt);
+	                    $configuration->addWire($wire);
+	                    
+                    }
+
+                    $relationIndex++;
+                }
+
+                $moduleIndex++;
             }
 
             file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));
