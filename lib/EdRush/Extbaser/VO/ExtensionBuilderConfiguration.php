@@ -5,6 +5,7 @@ namespace EdRush\Extbaser\VO;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
 
 /**
  * @author weberius
@@ -22,7 +23,7 @@ class ExtensionBuilderConfiguration
     public $properties;
 
     /**
-     * @var array
+     * @var Wire[]
      */
     public $wires = array();
 
@@ -44,28 +45,28 @@ class ExtensionBuilderConfiguration
         return $this;
     }
 
-    /**
-     * Extension key is in $this->properties.
-     *
-     * @return ExtensionBuilderConfiguration
-     */
-    public function setExtensionKey($extensionKey)
+    public function addWire(Wire $wire)
     {
-        $this->properties->setExtensionKey($extensionKey);
+        $this->wires[] = $wire;
 
         return $this;
     }
 
     /**
-     * Last modified is in $this->log.
+     * @param string $name
      *
-     * @return ExtensionBuilderConfiguration
+     * @return \EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module|bool
      */
-    public function setLastModified($last_modified)
+    public function getModuleByName($name)
     {
-        $this->log->setLastModified($last_modified);
+        foreach ($this->modules as $module) {
+            /* @var $module Module */
+            if ($name == $module->getValue()->getName()) {
+                return $module;
+            }
+        }
 
-        return $this;
+        return false;
     }
 
     public function getModules()

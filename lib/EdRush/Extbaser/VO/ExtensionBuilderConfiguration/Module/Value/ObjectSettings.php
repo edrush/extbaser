@@ -7,6 +7,9 @@ namespace EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value;
  */
 class ObjectSettings
 {
+    const OBJECT_TYPE_ENTITY = 'Entity';
+    const OBJECT_TYPE_VALUE_OBJECT = 'ValueObject';
+
     /**
      * @var bool
      */
@@ -25,7 +28,7 @@ class ObjectSettings
     /**
      * @var bool
      */
-    public $aggregateRoot = true;
+    public $aggregateRoot = false;
 
     /**
      * @var bool

@@ -12,6 +12,9 @@ use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
 use EdRush\Extbaser\ExtbaseExporter;
 
+/**
+ * @author weberius
+ */
 class ExportExtbaseCommand extends Command
 {
     /**

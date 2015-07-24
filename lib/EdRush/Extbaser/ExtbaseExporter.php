@@ -9,6 +9,11 @@ use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Properties;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Log;
 use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Tools\Console\MetadataFilter;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\RelationGroup\Relation;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire\Node;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\ObjectSettings;
 
 /**
  * ExtbaseExporter.
@@ -98,29 +103,51 @@ class ExtbaseExporter
 
                     $configuration->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
                     $configuration->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
-
-                    $configuration->setWires($roundtripContents['wires']);
                 }
             }
 
-            $configuration->setExtensionKey($this->extensionKey);
-            $configuration->setLastModified(date('Y-m-d H:i'));
+            $configuration->getProperties()
+                ->setExtensionKey($this->extensionKey);
+            $configuration->getLog()
+                ->setLastModified(date('Y-m-d H:i'));
 
+            //in this array we store the target entites for all relations to create wires later on
+            $relationTargetsByModuleByRelation = array();
+
+            $moduleIndex = 0;
+            $posX = 50;
+            $posY = 50;
             foreach ($metadata as $metadata) {
+                if ($moduleIndex) {
+                    if (0 == $moduleIndex % 5) {
+                        $posX = 50;
+                        $posY += 200;
+                    } else {
+                        $posX += 300;
+                    }
+                }
                 $className = $metadata->name;
                 //remove namespaces, e.g. when importing entities
                 if (class_exists($className)) {
-                    $reflection = new \ReflectionClass($metadata->name);
+                    $reflection = new \ReflectionClass($className);
                     $className = $reflection->getShortName();
                 }
 
                 $this->logs[] = sprintf('Processing table "<info>%s</info>"', $className);
 
                 $module = new Module();
-                $module->setName($className);
-                $module->setPosition(array(100, 100));
-                $module->setUid($this->getRandomUid());
+                $module->getValue()
+                    ->setName($className);
+                $module->getConfig()
+                    ->setPosition(array($posX, $posY));
+                $module->getValue()
+                    ->getObjectsettings()
+                    ->setUid($this->getRandomUid());
+                $module->getValue()
+                    ->getObjectsettings()
+                    ->setType(ObjectSettings::OBJECT_TYPE_ENTITY);
 
+                //export properties
                 foreach ($metadata->fieldMappings as $fieldMapping) {
                     $property = new Property();
 
@@ -128,10 +155,96 @@ class ExtbaseExporter
                     $property->setPropertyType($this->getPropertyType($fieldMapping['type']));
                     $property->setUid($this->getRandomUid());
 
-                    $module->addProperty($property);
+                    $module->getValue()
+                        ->getPropertyGroup()
+                        ->addProperty($property);
+                }
+
+                //export relations
+                $relationIndex = 0;
+                foreach ($metadata->associationMappings as $associationMapping) {
+                    $relation = new Relation();
+
+                    $relation->setRelationName($associationMapping['fieldName']);
+                    $relation->setUid($this->getRandomUid());
+
+                    if ($associationMapping['fetch'] == ClassMetadataInfo::FETCH_LAZY) {
+                        $relation->setLazyLoading(true);
+                    }
+
+                    $relationType = null;
+                    switch ($associationMapping['type']) {
+                        case ClassMetadataInfo::ONE_TO_MANY:
+                            $relationType = Relation::ONE_TO_MANY;
+                            break;
+                        case ClassMetadataInfo::MANY_TO_ONE:
+                            $relationType = Relation::MANY_TO_ONE;
+                            break;
+                        case ClassMetadataInfo::ONE_TO_ONE:
+                            $relationType = Relation::ONE_TO_ONE;
+                            break;
+                        case ClassMetadataInfo::MANY_TO_MANY:
+                            $relationType = Relation::MANY_TO_MANY;
+                            break;
+
+                    }
+
+                    $relation->setRelationType($relationType);
+                    $module->getValue()->getRelationGroup()->addRelation($relation);
+
+                    $targetClassName = $associationMapping['targetEntity'];
+                    //remove namespaces, e.g. when importing entities
+                    if (class_exists($targetClassName)) {
+                        $reflection = new \ReflectionClass($targetClassName);
+                        $targetClassName = $reflection->getShortName();
+                    }
+                    $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex] = $targetClassName;
+                    $relationIndex++;
+
+                    $this->logs[] = sprintf('Added relation "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $associationMapping['fieldName'], $className, $targetClassName);
                 }
 
                 $configuration->addModule($module);
+
+                $moduleIndex++;
+            }
+
+            // now we have all the modules, we can create wires
+            $moduleIndex = 0;
+            foreach ($configuration->getModules() as $key => $module) {
+                $relationIndex = 0;
+                foreach ($module->getValue()->getRelationGroup()->getRelations() as $relation) {
+                    /* @var $relation Relation */
+
+                    // now add the corresponding wire for the relation
+                    $wire = new Wire();
+                    $targetEntity = $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex];
+                    $targetModule = $configuration->getModuleByName($targetEntity);
+
+                    if ($targetModule) {
+                        $targetModuleId = array_search($targetModule, $configuration->getModules());
+
+                        $src = new Node();
+                        $src->setModuleId($key);
+                        $src->setTerminal(Node::TERMINAL_SRC.$relationIndex);
+                        $src->setUid($relation->getUid());
+
+                        $tgt = new Node();
+                        $tgt->setModuleId($targetModuleId);
+                        $tgt->setTerminal(Node::TERMINAL_TGT);
+                        $tgt->setUid($targetModule->getValue()->getObjectsettings()->getUid());
+
+                        $wire->setSrc($src);
+                        $wire->setTgt($tgt);
+                        $configuration->addWire($wire);
+
+                        $this->logs[] = sprintf('Added wire "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $relation->getRelationName(), $module->getValue()->getName(), $targetEntity);
+                    }
+
+                    $relationIndex++;
+                }
+
+                $moduleIndex++;
             }
 
             file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));

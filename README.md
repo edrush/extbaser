@@ -9,7 +9,7 @@ composer require edrush/extbaser
 ```
 
 ## Usage
-### 1. Export your database schema to a TYPO3 Extension
+### 1. Export your database schema to a TYPO3 Extbase Extension
 Configure your connection:
 ```
 php bin/app.php extbaser:export -u username -p password dbname target_extension_key
@@ -18,8 +18,6 @@ Connection parameters default to [Symfony best practices](http://symfony.com/doc
 ```
 php bin/app.php extbaser:export dbname target_extension_key
 ```
-
-
 
 The generated extension folder contains the file **ExtensionBuilder.json**, which is the project file for the *TYPO3 Extension Builder* to scaffold your extension, see below.
 
