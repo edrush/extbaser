@@ -10,7 +10,7 @@ class ActionGroup
     /**
      * @var bool
      */
-    public $_default0_list = true;
+    public $_default0_list = false;
 
     /**
      * @var bool

@@ -13,6 +13,7 @@ use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\RelationGroup\
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire\Node;
+use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\ObjectSettings;
 
 /**
  * ExtbaseExporter.
@@ -114,7 +115,17 @@ class ExtbaseExporter
             $relationTargetsByModuleByRelation = array();
 
             $moduleIndex = 0;
+            $posX = 50;
+            $posY = 50;
             foreach ($metadata as $metadata) {
+                if ($moduleIndex) {
+                    if (0 == $moduleIndex % 5) {
+                        $posX = 50;
+                        $posY += 200;
+                    } else {
+                        $posX += 300;
+                    }
+                }
                 $className = $metadata->name;
                 //remove namespaces, e.g. when importing entities
                 if (class_exists($className)) {
@@ -128,10 +139,13 @@ class ExtbaseExporter
                 $module->getValue()
                     ->setName($className);
                 $module->getConfig()
-                    ->setPosition(array(100, 100));
+                    ->setPosition(array($posX, $posY));
                 $module->getValue()
                     ->getObjectsettings()
                     ->setUid($this->getRandomUid());
+                $module->getValue()
+                    ->getObjectsettings()
+                    ->setType(ObjectSettings::OBJECT_TYPE_ENTITY);
 
                 //export properties
                 foreach ($metadata->fieldMappings as $fieldMapping) {
@@ -181,11 +195,13 @@ class ExtbaseExporter
                     $targetClassName = $associationMapping['targetEntity'];
                     //remove namespaces, e.g. when importing entities
                     if (class_exists($targetClassName)) {
-                    	$reflection = new \ReflectionClass($targetClassName);
-                    	$targetClassName = $reflection->getShortName();
+                        $reflection = new \ReflectionClass($targetClassName);
+                        $targetClassName = $reflection->getShortName();
                     }
                     $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex] = $targetClassName;
                     $relationIndex++;
+
+                    $this->logs[] = sprintf('Added relation "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $associationMapping['fieldName'], $className, $targetClassName);
                 }
 
                 $configuration->addModule($module);
@@ -193,35 +209,36 @@ class ExtbaseExporter
                 $moduleIndex++;
             }
 
-            // now we have all the modules, we can craw wires
+            // now we have all the modules, we can create wires
             $moduleIndex = 0;
             foreach ($configuration->getModules() as $key => $module) {
                 $relationIndex = 0;
                 foreach ($module->getValue()->getRelationGroup()->getRelations() as $relation) {
+                    /* @var $relation Relation */
 
                     // now add the corresponding wire for the relation
                     $wire = new Wire();
-                    $targetEntity= $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex];
+                    $targetEntity = $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex];
                     $targetModule = $configuration->getModuleByName($targetEntity);
-                    
+
                     if ($targetModule) {
-                    	
-                    	$targetModuleId = array_search($targetModule, $configuration->getModules());
-                    
-	                    $src = new Node();
-	                    $src->setModuleId($key);
-	                    $src->setTerminal(Node::TERMINAL_SRC.$relationIndex);
-	                    $src->setUid($module->getValue()->getObjectsettings()->getUid());
-	
-	                    $tgt = new Node();
-	                    $tgt->setModuleId($targetModuleId);
-	                    $tgt->setTerminal(Node::TERMINAL_TGT);
-	                    $tgt->setUid($targetModule->getValue()->getObjectsettings()->getUid());
-	
-	                    $wire->setSrc($src);
-	                    $wire->setTgt($tgt);
-	                    $configuration->addWire($wire);
-	                    
+                        $targetModuleId = array_search($targetModule, $configuration->getModules());
+
+                        $src = new Node();
+                        $src->setModuleId($key);
+                        $src->setTerminal(Node::TERMINAL_SRC.$relationIndex);
+                        $src->setUid($relation->getUid());
+
+                        $tgt = new Node();
+                        $tgt->setModuleId($targetModuleId);
+                        $tgt->setTerminal(Node::TERMINAL_TGT);
+                        $tgt->setUid($targetModule->getValue()->getObjectsettings()->getUid());
+
+                        $wire->setSrc($src);
+                        $wire->setTgt($tgt);
+                        $configuration->addWire($wire);
+
+                        $this->logs[] = sprintf('Added wire "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $relation->getRelationName(), $module->getValue()->getName(), $targetEntity);
                     }
 
                     $relationIndex++;
