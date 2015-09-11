@@ -26,6 +26,9 @@ class ExtbaseExporter
 
     private static $_propertyTypes = array(
         'bool' => 'Boolean',
+        'datetime' => 'NativeDateTime',
+        'array' => 'String',
+        'json' => 'String',
     );
 
     /**
