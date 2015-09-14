@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire\Node;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\ObjectSettings;
+use Doctrine\Common\Inflector\Inflector;
 
 /**
  * ExtbaseExporter.
@@ -165,34 +166,39 @@ class ExtbaseExporter
 
                 //export relations
                 $relationIndex = 0;
-                foreach ($metadata->associationMappings as $associationMapping) {
+                foreach ($metadata->associationMappings as $associationMapping)
+                {
+                    $relationNameSingular = $associationMapping['fieldName'];
+                    $relationNamePlural = Inflector::pluralize(Inflector::singularize($associationMapping['fieldName']));
+
                     $relation = new Relation();
-
-                    $relation->setRelationName($associationMapping['fieldName']);
-                    $relation->setUid($this->getRandomUid());
-
-                    if ($associationMapping['fetch'] == ClassMetadataInfo::FETCH_LAZY) {
-                        $relation->setLazyLoading(true);
-                    }
-
                     $relationType = null;
+                    $relationName = '';
+
                     switch ($associationMapping['type']) {
                         case ClassMetadataInfo::ONE_TO_MANY:
                             $relationType = Relation::ONE_TO_MANY;
+                            $relationName = $relationNamePlural;
                             break;
                         case ClassMetadataInfo::MANY_TO_ONE:
                             $relationType = Relation::MANY_TO_ONE;
+                            $relationName = $relationNameSingular;
                             break;
                         case ClassMetadataInfo::ONE_TO_ONE:
                             $relationType = Relation::ONE_TO_ONE;
+                            $relationName = $relationNameSingular;
                             break;
                         case ClassMetadataInfo::MANY_TO_MANY:
                             $relationType = Relation::MANY_TO_MANY;
+                            $relationName = $relationNamePlural;
                             break;
 
                     }
 
+                    $relation->setRelationName($relationName);
                     $relation->setRelationType($relationType);
+                    $relationName = $relationNameSingular;
+
                     $module->getValue()->getRelationGroup()->addRelation($relation);
 
                     $targetClassName = $associationMapping['targetEntity'];
@@ -204,7 +210,7 @@ class ExtbaseExporter
                     $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex] = $targetClassName;
                     $relationIndex++;
 
-                    $this->logs[] = sprintf('Added relation "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $associationMapping['fieldName'], $className, $targetClassName);
+                    $this->logs[] = sprintf('Added relation "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $relationName, $className, $targetClassName);
                 }
 
                 $configuration->addModule($module);
