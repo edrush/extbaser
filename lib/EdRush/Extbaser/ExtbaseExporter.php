@@ -30,6 +30,8 @@ class ExtbaseExporter
         'datetime' => 'NativeDateTime',
         'array' => 'String',
         'json' => 'String',
+        'jsonarray' => 'String',
+        'smallint' => 'Integer',
     );
 
     /**
