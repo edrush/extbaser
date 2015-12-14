@@ -15,6 +15,7 @@ use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Wire\Node;
 use EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module\Value\ObjectSettings;
 use Doctrine\Common\Inflector\Inflector;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * ExtbaseExporter.
@@ -23,7 +24,8 @@ use Doctrine\Common\Inflector\Inflector;
  */
 class ExtbaseExporter
 {
-    const PROJECT_FILE_NAME = 'ExtensionBuilder.json';
+    const PROJECT_FILE = 'ExtensionBuilder.json';
+    const CONFIG_FILE = 'Configuration/extbaser.yml';
 
     private static $_propertyTypes = array(
         'bool' => 'Boolean',
@@ -32,6 +34,7 @@ class ExtbaseExporter
         'json' => 'String',
         'jsonarray' => 'String',
         'smallint' => 'Integer',
+        'dateinterval' => 'String'
     );
 
     /**
@@ -69,6 +72,21 @@ class ExtbaseExporter
      */
     protected $logs = array();
 
+    /**
+     * @var array
+     */
+    protected $configuration = array();
+
+    /**
+     * @var string
+     */
+    protected $filename;
+
+    /**
+     * @var array
+     */
+    protected $metadata;
+
     public function __construct(DisconnectedClassMetadataFactory $cmf)
     {
         $this->cmf = $cmf;
@@ -77,44 +95,42 @@ class ExtbaseExporter
         if (!\Doctrine\DBAL\Types\Type::hasType('json')) {
             \Doctrine\DBAL\Types\Type::addType('json', 'Sonata\Doctrine\Types\JsonType');
         }
+
+        if (!\Doctrine\DBAL\Types\Type::hasType('dateinterval')) {
+            \Doctrine\DBAL\Types\Type::addType('dateinterval', 'Herrera\Doctrine\DBAL\Types\DateIntervalType');
+        }
     }
 
     public function exportJson()
     {
-        $metadata = $this->cmf->getAllMetadata();
-        $metadata = MetadataFilter::filter($metadata, $this->filter);
+        // set metadata, mkdir, set filename and configuration
+        $this->prepare();
 
-        if ($metadata) {
-            $filename = $this->path.'/'.$this->extensionKey.'/'.self::PROJECT_FILE_NAME;
+        if (!empty($this->metadata)) {
+            $extbaseConfig = new ExtensionBuilderConfiguration();
 
-            if (!is_dir($dir = dirname($filename))) {
-                mkdir($dir, 0777, true);
-            }
-
-            $configuration = new ExtensionBuilderConfiguration();
-
-            if (is_readable($filename)) {
+            if (is_readable($this->filename)) {
                 if ($this->overwriteExistingFiles && $this->roundTripExistingFiles) {
-                    $this->logs[] = sprintf('File "<info>%s</info>" already exists, you selected both override (force) and round-trip - please choose one.', $filename);
+                    $this->logs[] = sprintf('File "<info>%s</info>" already exists, you selected both override (force) and round-trip - please choose one.', $this->filename);
 
                     return 1;
                 }
                 if (!$this->overwriteExistingFiles && !$this->roundTripExistingFiles) {
-                    $this->logs[] = sprintf('File "<info>%s</info>" already exists, use --force to override or --round-trip it.', $filename);
+                    $this->logs[] = sprintf('File "<info>%s</info>" already exists, use --force to override or --round-trip it.', $this->filename);
 
                     return 1;
                 }
                 if ($this->roundTripExistingFiles) {
-                    $roundtripContents = json_decode(file_get_contents($filename), true);
+                    $roundtripContents = json_decode(file_get_contents($this->filename), true);
 
-                    $configuration->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
-                    $configuration->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
+                    $extbaseConfig->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
+                    $extbaseConfig->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
                 }
             }
 
-            $configuration->getProperties()
+            $extbaseConfig->getProperties()
                 ->setExtensionKey($this->extensionKey);
-            $configuration->getLog()
+            $extbaseConfig->getLog()
                 ->setLastModified(date('Y-m-d H:i'));
 
             //in this array we store the target entites for all relations to create wires later on
@@ -123,7 +139,29 @@ class ExtbaseExporter
             $moduleIndex = 0;
             $posX = 50;
             $posY = 50;
-            foreach ($metadata as $metadata) {
+            foreach ($this->metadata as $metadata) {
+                /* @var $metadata \Doctrine\ORM\Mapping\ClassMetadata */
+                $className = $metadata->name;
+                $tableName = $metadata->getTableName();
+                //remove namespaces, e.g. when importing entities
+                if (class_exists($className)) {
+                    $reflection = new \ReflectionClass($className);
+                    $className = $reflection->getShortName();
+                }
+
+                $ignore = false;
+                if (isset($this->configuration['ignore_tables'])) {
+                    foreach ($this->configuration['ignore_tables'] as $ignoreTableName) {
+                        if (fnmatch($ignoreTableName, $tableName))
+                            $ignore = true;
+                    }
+                }
+                if ($ignore) {
+                    continue;
+                }
+
+                $this->logs[] = sprintf('Processing table "<info>%s</info>"', $tableName);
+
                 if ($moduleIndex) {
                     if (0 == $moduleIndex % 5) {
                         $posX = 50;
@@ -132,14 +170,6 @@ class ExtbaseExporter
                         $posX += 300;
                     }
                 }
-                $className = $metadata->name;
-                //remove namespaces, e.g. when importing entities
-                if (class_exists($className)) {
-                    $reflection = new \ReflectionClass($className);
-                    $className = $reflection->getShortName();
-                }
-
-                $this->logs[] = sprintf('Processing table "<info>%s</info>"', $className);
 
                 $module = new Module();
                 $module->getValue()
@@ -168,8 +198,7 @@ class ExtbaseExporter
 
                 //export relations
                 $relationIndex = 0;
-                foreach ($metadata->associationMappings as $associationMapping)
-                {
+                foreach ($metadata->associationMappings as $associationMapping) {
                     $relationNameSingular = $associationMapping['fieldName'];
                     $relationNamePlural = Inflector::pluralize(Inflector::singularize($associationMapping['fieldName']));
 
@@ -215,14 +244,14 @@ class ExtbaseExporter
                     $this->logs[] = sprintf('Added relation "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $relationName, $className, $targetClassName);
                 }
 
-                $configuration->addModule($module);
+                $extbaseConfig->addModule($module);
 
                 $moduleIndex++;
             }
 
             // now we have all the modules, we can create wires
             $moduleIndex = 0;
-            foreach ($configuration->getModules() as $key => $module) {
+            foreach ($extbaseConfig->getModules() as $key => $module) {
                 $relationIndex = 0;
                 if (!empty($module->getValue()->getRelationGroup()->getRelations())) {
                     foreach ($module->getValue()->getRelationGroup()->getRelations() as $relation) {
@@ -231,14 +260,14 @@ class ExtbaseExporter
                         // now add the corresponding wire for the relation
                         $wire = new Wire();
                         $targetEntity = $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex];
-                        $targetModule = $configuration->getModuleByName($targetEntity);
+                        $targetModule = $extbaseConfig->getModuleByName($targetEntity);
 
                         if ($targetModule) {
-                            $targetModuleId = array_search($targetModule, $configuration->getModules());
+                            $targetModuleId = array_search($targetModule, $extbaseConfig->getModules());
 
                             $src = new Node();
                             $src->setModuleId($key);
-                            $src->setTerminal(Node::TERMINAL_SRC.$relationIndex);
+                            $src->setTerminal(Node::TERMINAL_SRC . $relationIndex);
                             $src->setUid($relation->getUid());
 
                             $tgt = new Node();
@@ -248,7 +277,7 @@ class ExtbaseExporter
 
                             $wire->setSrc($src);
                             $wire->setTgt($tgt);
-                            $configuration->addWire($wire);
+                            $extbaseConfig->addWire($wire);
 
                             $this->logs[] = sprintf('Added wire "<comment>%s</comment>": "<info>%s</info>" -> "<info>%s</info>"', $relation->getRelationName(), $module->getValue()->getName(), $targetEntity);
                         }
@@ -260,9 +289,9 @@ class ExtbaseExporter
                 $moduleIndex++;
             }
 
-            file_put_contents($filename, json_encode($configuration, JSON_PRETTY_PRINT));
+            file_put_contents($this->filename, json_encode($extbaseConfig, JSON_PRETTY_PRINT));
 
-            $this->logs[] = 'Exported database schema to '.$filename;
+            $this->logs[] = 'Exported database schema to ' . $this->filename;
 
             return true;
         } else {
@@ -270,6 +299,23 @@ class ExtbaseExporter
 
             return false;
         }
+    }
+
+    protected function prepare()
+    {
+        $this->metadata = $this->cmf->getAllMetadata();
+        $this->metadata = MetadataFilter::filter($this->metadata, $this->filter);
+
+        $this->filename = $this->path . '/' . self::PROJECT_FILE;
+        if (!is_dir($dir = dirname($this->filename))) {
+            mkdir($dir, 0777, true);
+        }
+
+        $configFile = $this->path . '/' . self::CONFIG_FILE;
+        if (is_readable($configFile)) {
+            $this->configuration = Yaml::parse(file_get_contents($configFile));
+        }
+
     }
 
     /**
@@ -281,11 +327,9 @@ class ExtbaseExporter
      */
     protected function getPropertyType($type)
     {
-        $propertyType = '';
+        $propertyType = ucfirst($type);
         if (isset(self::$_propertyTypes[$type])) {
             $propertyType = self::$_propertyTypes[$type];
-        } else {
-            $propertyType = ucfirst($type);
         }
 
         return $propertyType;
@@ -300,7 +344,7 @@ class ExtbaseExporter
     {
         $uid = rand(100000000000, 999999999999);
 
-        return (string) $uid;
+        return (string)$uid;
     }
 
     protected function mapArrayToClass($array, $class)
@@ -378,30 +422,36 @@ class ExtbaseExporter
 
         return $this;
     }
+
     public function getFilter()
     {
         return $this->filter;
     }
+
     public function setFilter($filter)
     {
         $this->filter = $filter;
 
         return $this;
     }
+
     public function getCmf()
     {
         return $this->cmf;
     }
+
     public function setCmf(DisconnectedClassMetadataFactory $cmf)
     {
         $this->cmf = $cmf;
 
         return $this;
     }
+
     public function getRoundTripExistingFiles()
     {
         return $this->roundTripExistingFiles;
     }
+
     public function setRoundTripExistingFiles($roundTripExistingFiles)
     {
         $this->roundTripExistingFiles = $roundTripExistingFiles;
