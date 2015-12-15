@@ -34,7 +34,8 @@ class ExtbaseExporter
         'json' => 'String',
         'jsonarray' => 'String',
         'smallint' => 'Integer',
-        'dateinterval' => 'String'
+        'dateinterval' => 'String',
+        'time' => 'String'
     );
 
     /**
