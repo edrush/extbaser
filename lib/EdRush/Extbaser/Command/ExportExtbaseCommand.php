@@ -26,8 +26,8 @@ class ExportExtbaseCommand extends Command
     {
         $inputOptions = array(
             new InputOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.'),
-            new InputOption('force', 'f', null, 'Override existing extension'),
-            new InputOption('round-trip', 'r', null, 'Roundtrip existing extension'),
+            new InputOption('force', 'f', null, 'Override existing extension.'),
+            new InputOption('round-trip', 'r', null, 'Roundtrip existing extension.'),
         );
 
         return $inputOptions;
@@ -46,15 +46,16 @@ class ExportExtbaseCommand extends Command
             ->setName('extbaser:export')
             ->setDescription('Export an existing database schema to a TYPO3 Extbase Extension')
 
-            ->addArgument('dbname', InputArgument::REQUIRED, 'The database you want to export')
-            ->addArgument('path', InputArgument::REQUIRED, 'The target path (including TYPO3 extension key)')
+            ->addArgument('dbname', InputArgument::REQUIRED, 'The database you want to export.')
+            ->addArgument('path', InputArgument::REQUIRED, 'The target path.')
+            ->addOption('extension-key', 'k', InputOption::VALUE_OPTIONAL, 'The target TYPO3 Extension key (if not same as paths target folder).')
 
             //db connection parameters
-            ->addOption('user', 'u', InputOption::VALUE_OPTIONAL, 'The database user', 'root')
-            ->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'The database password')
-            ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host', '127.0.0.1')
-            ->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver', 'pdo_mysql')
-            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port')
+            ->addOption('user', 'u', InputOption::VALUE_OPTIONAL, 'The database user.', 'root')
+            ->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'The database password.')
+            ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'The database host.', '127.0.0.1')
+            ->addOption('driver', null, InputOption::VALUE_OPTIONAL, 'The database driver.', 'pdo_mysql')
+            ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'The database port.')
         ;
 
         foreach (self::getDefaultInputOptions() as $inputOption) {
@@ -89,6 +90,8 @@ class ExportExtbaseCommand extends Command
 
         $exporter = new ExtbaseExporter($cmf);
         $exporter->setPath($input->getArgument('path'));
+        $exporter->setExtensionKey($input->getOption('extension-key'));
+
         self::mapDefaultInputOptions($exporter, $input);
 
         $output->writeln(sprintf('Exporting database schema "<info>%s</info>".', $dbName));

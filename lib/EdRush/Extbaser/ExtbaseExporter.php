@@ -46,6 +46,11 @@ class ExtbaseExporter
     /**
      * @var string
      */
+    protected $extensionKey;
+
+    /**
+     * @var string
+     */
     protected $path;
 
     /**
@@ -124,7 +129,15 @@ class ExtbaseExporter
                 }
             }
 
-            $extensionKey = array_pop(explode(PATH_SEPARATOR, $this->path));
+            $extensionKey = $this->extensionKey;
+            if (is_null($extensionKey)) {
+                // support limbo directory separators
+                // e.g. on Windows git bash uses "/", but php's DIRECTORY_SEPARATOR is "\"
+                $directorySeparators = array("\\", "/");
+                $path = str_replace($directorySeparators, DIRECTORY_SEPARATOR, $this->path);
+                $extensionKey = array_pop(explode(DIRECTORY_SEPARATOR, $path));
+            }
+
             $extbaseConfig->getProperties()
                 ->setExtensionKey($extensionKey);
             $extbaseConfig->getLog()
@@ -364,6 +377,19 @@ class ExtbaseExporter
     public function setMetadata($metadata)
     {
         $this->metadata = $metadata;
+    }
+
+    public function getExtensionKey()
+    {
+        return $this->extensionKey;
+    }
+
+    /**
+     * @param string $extensionKey
+     */
+    public function setExtensionKey($extensionKey)
+    {
+        $this->extensionKey = $extensionKey;
     }
 
     public function getLogs()
