@@ -25,7 +25,7 @@ class ExportExtbaseCommand extends Command
     public static function getDefaultInputOptions()
     {
         $inputOptions = array(
-            new InputOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped'),
+            new InputOption('filter', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A string pattern used to match entities that should be mapped.'),
             new InputOption('force', 'f', null, 'Override existing extension'),
             new InputOption('round-trip', 'r', null, 'Roundtrip existing extension'),
         );
@@ -47,9 +47,7 @@ class ExportExtbaseCommand extends Command
             ->setDescription('Export an existing database schema to a TYPO3 Extbase Extension')
 
             ->addArgument('dbname', InputArgument::REQUIRED, 'The database you want to export')
-            ->addArgument('extension-key', InputArgument::REQUIRED, 'The target TYPO3 Extension key')
-
-            ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to', '.')
+            ->addArgument('path', InputArgument::REQUIRED, 'The target path (including TYPO3 extension key)')
 
             //db connection parameters
             ->addOption('user', 'u', InputOption::VALUE_OPTIONAL, 'The database user', 'root')
@@ -90,8 +88,7 @@ class ExportExtbaseCommand extends Command
         $cmf->setEntityManager($em);
 
         $exporter = new ExtbaseExporter($cmf);
-        $exporter->setExtensionKey($input->getArgument('extension-key'));
-        $exporter->setPath($input->getOption('path'));
+        $exporter->setPath($input->getArgument('path'));
         self::mapDefaultInputOptions($exporter, $input);
 
         $output->writeln(sprintf('Exporting database schema "<info>%s</info>".', $dbName));

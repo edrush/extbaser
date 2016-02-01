@@ -46,11 +46,6 @@ class ExtbaseExporter
     /**
      * @var string
      */
-    protected $extensionKey;
-
-    /**
-     * @var string
-     */
     protected $path;
 
     /**
@@ -129,8 +124,9 @@ class ExtbaseExporter
                 }
             }
 
+            $extensionKey = array_pop(explode(PATH_SEPARATOR, $this->path));
             $extbaseConfig->getProperties()
-                ->setExtensionKey($this->extensionKey);
+                ->setExtensionKey($extensionKey);
             $extbaseConfig->getLog()
                 ->setLastModified(date('Y-m-d H:i'));
 
@@ -368,19 +364,6 @@ class ExtbaseExporter
     public function setMetadata($metadata)
     {
         $this->metadata = $metadata;
-    }
-
-    public function getExtensionKey()
-    {
-        return $this->extensionKey;
-    }
-
-    /**
-     * @param string $extensionKey
-     */
-    public function setExtensionKey($extensionKey)
-    {
-        $this->extensionKey = $extensionKey;
     }
 
     public function getLogs()

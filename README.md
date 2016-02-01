@@ -12,11 +12,11 @@ composer require edrush/extbaser
 ### 1. Export your database schema to a TYPO3 Extbase Extension
 Configure your connection:
 ```
-php bin/app.php extbaser:export -u username -p password dbname target_extension_key
+php bin/app.php extbaser:export -u username -p password dbname target_extension_folder
 ```
-Connection parameters default to [Symfony best practices](http://symfony.com/doc/current/best_practices/configuration.html):
+Connection parameters default to [Symfony best practices](http://symfony.com/doc/current/best_practices/configuration.html) so you could simplify your command to:
 ```
-php bin/app.php extbaser:export dbname target_extension_key
+php bin/app.php extbaser:export dbname target_extension_folder
 ```
 
 The generated extension folder contains the file **ExtensionBuilder.json**, which is the project file for the *TYPO3 Extension Builder* to scaffold your extension, see below.
@@ -33,12 +33,10 @@ Move the generated folder to the 'typo3conf/ext' folder of your TYPO3 installati
 * Activate your extension in the Extension Manager
 
 ## Roundtrip
-Extbaser also supports roundtriping of TYPO3 Extbase Extensions, which means that if you update the extension with Extbaser all **Extension properties** set in the Extension Builder will remain:
-* Copy the extension to a location where Extbaser can access it
-* Retype the export command you used before  and add the *-r* option: `php bin/app.php extbaser:export dbname target_extension_key -r --path=...` (the path variable is the parent folder of your extension folder, set it if the extension is not in your current directory)
+Extbaser also supports roundtriping of TYPO3 Extbase Extensions by using the *-r* option, which means that if you update the extension with Extbaser all **Extension properties** set in the Extension Builder will remain: `php bin/app.php extbaser:export -r dbname target_extension_folder`
 
 ## Help
-To see a list of all arguments you can pass to Extbaser type:
+To see a list of all possible arguments you can pass to Extbaser type:
 ```
 php bin/app.php extbaser:export --help
 ```
