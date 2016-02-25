@@ -40,3 +40,6 @@ To see a list of all possible arguments you can pass to Extbaser type:
 ```
 php bin/app.php extbaser:export --help
 ```
+
+## Links
+Extbaser works great with the TYPO3 Extension [XmTools](https://github.com/xima-media/xm_tools) to connect TYPO3 CMS to [APIs](http://xm-tools.readthedocs.org/en/master/sections/tools/restapi.html).
