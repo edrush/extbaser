@@ -10,14 +10,16 @@ composer require edrush/extbaser
 
 ## Usage
 ### 1. Export your database schema to a TYPO3 Extbase Extension
-Configure your connection:
 ```
-php bin/app.php extbaser:export -u username -p password dbname target_extension_key
+php bin/app.php extbaser:export dbname
 ```
-Connection parameters default to [Symfony best practices](http://symfony.com/doc/current/best_practices/configuration.html):
+(Connection parameters default to [Symfony best practices](http://symfony.com/doc/current/best_practices/configuration.html))
+
+To configure your connection type:
 ```
-php bin/app.php extbaser:export dbname target_extension_key
+php bin/app.php extbaser:export -u username -p password dbname
 ```
+
 
 The generated extension folder contains the file **ExtensionBuilder.json**, which is the project file for the *TYPO3 Extension Builder* to scaffold your extension, see below.
 
@@ -38,7 +40,31 @@ Extbaser also supports roundtriping of TYPO3 Extbase Extensions, which means tha
 * Retype the export command you used before  and add the *-r* option: `php bin/app.php extbaser:export dbname target_extension_key -r --path=...` (the path variable is the parent folder of your extension folder, set it if the extension is not in your current directory)
 
 ## Help
-To see a list of all arguments you can pass to Extbaser type:
 ```
 php bin/app.php extbaser:export --help
+
+Usage:
+  extbaser:export [options] [--] <dbname>
+
+Arguments:
+  dbname                               The database you want to export
+
+Options:
+      --extension-key[=EXTENSION-KEY]  The target TYPO3 Extension key
+      --path[=PATH]                    The path to export the extension to [default: "."]
+  -u, --user[=USER]                    The database user [default: "root"]
+  -p, --password[=PASSWORD]            The database password
+      --host[=HOST]                    The database host [default: "127.0.0.1"]
+      --driver[=DRIVER]                The database driver [default: "pdo_mysql"]
+      --port[=PORT]                    The database port
+      --filter=FILTER                  A string pattern used to match entities that should be mapped (multiple values allowed)
+  -f, --force                          Override existing extension
+  -r, --round-trip                     Roundtrip existing extension
+  -h, --help                           Display this help message
+  -q, --quiet                          Do not output any message
+  -V, --version                        Display this application version
+      --ansi                           Force ANSI output
+      --no-ansi                        Disable ANSI output
+  -n, --no-interaction                 Do not ask any interactive question
+  -v|vv|vvv, --verbose                 Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 ```

@@ -17,6 +17,7 @@ use EdRush\Extbaser\ExtbaseExporter;
  */
 class ExportExtbaseCommand extends Command
 {
+    const DEFAULT_PATH = '.';
     /**
      * Get command options for all environments.
      *
@@ -47,9 +48,9 @@ class ExportExtbaseCommand extends Command
             ->setDescription('Export an existing database schema to a TYPO3 Extbase Extension')
 
             ->addArgument('dbname', InputArgument::REQUIRED, 'The database you want to export')
-            ->addArgument('extension-key', InputArgument::REQUIRED, 'The target TYPO3 Extension key')
 
-            ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to', '.')
+            ->addOption('extension-key', null, InputOption::VALUE_OPTIONAL, 'The target TYPO3 Extension key')
+            ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'The path to export the extension to', self::DEFAULT_PATH)
 
             //db connection parameters
             ->addOption('user', 'u', InputOption::VALUE_OPTIONAL, 'The database user', 'root')
@@ -67,6 +68,8 @@ class ExportExtbaseCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $dbName = $input->getArgument('dbname');
+        $path = $input->getOption('path');
+        $extensionKey = $input->getOption('extension-key');
 
         $connectionParams = array(
             'dbname' => $dbName,
@@ -89,8 +92,15 @@ class ExportExtbaseCommand extends Command
         $cmf = new DisconnectedClassMetadataFactory();
         $cmf->setEntityManager($em);
 
+        if (is_null($extensionKey)) {
+            $extensionKey = $dbName;
+            if (self::DEFAULT_PATH != $path) {
+                $extensionKey = array_pop(explode(DIRECTORY_SEPARATOR, $path));
+            }
+        }
+
         $exporter = new ExtbaseExporter($cmf);
-        $exporter->setExtensionKey($input->getArgument('extension-key'));
+        $exporter->setExtensionKey($extensionKey);
         $exporter->setPath($input->getOption('path'));
         self::mapDefaultInputOptions($exporter, $input);
 
