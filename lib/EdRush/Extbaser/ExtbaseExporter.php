@@ -109,6 +109,7 @@ class ExtbaseExporter
 
         if (!empty($this->metadata)) {
             $extbaseConfig = new ExtensionBuilderConfiguration();
+            $roundtripCache = array();
 
             if (is_readable($this->filename)) {
                 if ($this->overwriteExistingFiles && $this->roundTripExistingFiles) {
@@ -126,6 +127,14 @@ class ExtbaseExporter
 
                     $extbaseConfig->setProperties($this->mapArrayToClass($roundtripContents['properties'], new Properties()));
                     $extbaseConfig->setLog($this->mapArrayToClass($roundtripContents['log'], new Log()));
+//                    $roundtripCache[]
+                    foreach ($roundtripContents['modules'] as $moduleArray) {
+                        $module = $this->mapArrayToClass($moduleArray, new Module());
+                        /* @var $module \EdRush\Extbaser\VO\ExtensionBuilderConfiguration\Module */
+                        if (isset($module->value) && isset($module->value['name'])) {
+                            $roundtripCache['actionGroups'][$module->value['name']] = $module->getValue()['actionGroup'];
+                        }
+                    }
                 }
             }
 
@@ -192,6 +201,12 @@ class ExtbaseExporter
                 $module->getValue()
                     ->getObjectsettings()
                     ->setType(ObjectSettings::OBJECT_TYPE_ENTITY);
+
+                if (isset($roundtripCache['actionGroups']) && isset($roundtripCache['actionGroups'][$className])) {
+                    foreach ($roundtripCache['actionGroups'][$className] as $key => $value) {
+                        $module->getValue()->getActionGroup()->$key = $value;
+                    }
+                }
 
                 //export properties
                 foreach ($metadata->fieldMappings as $fieldMapping) {
