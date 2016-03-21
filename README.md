@@ -68,3 +68,6 @@ Options:
   -n, --no-interaction                 Do not ask any interactive question
   -v|vv|vvv, --verbose                 Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 ```
+
+## Links
+Extbaser works great with the TYPO3 Extension [XmTools](https://github.com/xima-media/xm_tools) to connect TYPO3 CMS to [APIs](http://xm-tools.readthedocs.org/en/master/sections/tools/restapi.html).

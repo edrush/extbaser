@@ -34,7 +34,8 @@ class ExtbaseExporter
         'json' => 'String',
         'jsonarray' => 'String',
         'smallint' => 'Integer',
-        'dateinterval' => 'String'
+        'dateinterval' => 'String',
+        'time' => 'NativeDateTime'
     );
 
     /**
@@ -128,8 +129,17 @@ class ExtbaseExporter
                 }
             }
 
+            $extensionKey = $this->extensionKey;
+            if (is_null($extensionKey)) {
+                // support limbo directory separators
+                // e.g. on Windows git bash uses "/", but php's DIRECTORY_SEPARATOR is "\"
+                $directorySeparators = array("\\", "/");
+                $path = str_replace($directorySeparators, DIRECTORY_SEPARATOR, $this->path);
+                $extensionKey = array_pop(explode(DIRECTORY_SEPARATOR, $path));
+            }
+
             $extbaseConfig->getProperties()
-                ->setExtensionKey($this->extensionKey);
+                ->setExtensionKey($extensionKey);
             $extbaseConfig->getLog()
                 ->setLastModified(date('Y-m-d H:i'));
 
