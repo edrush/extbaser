@@ -179,7 +179,8 @@ class ExtbaseExporter
                     continue;
                 }
 
-                $this->logs[] = sprintf('Processing table "<info>%s</info>"', $tableName);
+                $this->logs[] = '';
+                $this->logs[] = sprintf('Processing table "<info>%s</info>"...', $tableName);
 
                 if ($moduleIndex) {
                     if (0 == $moduleIndex % 5) {
@@ -233,7 +234,7 @@ class ExtbaseExporter
 
                     $relationNameSingular = $associationMapping['fieldName'];
                     $relationNamePlural = Inflector::pluralize(Inflector::singularize($associationMapping['fieldName']));
-                    $relationNamePluralInversedBy = Inflector::pluralize(Inflector::singularize($associationMapping['inversedBy']));
+                    $relationNameSingularMappedBy = Inflector::singularize(strtolower($targetClassName));
                     $relationNamePluralMappedBy = Inflector::pluralize(strtolower($targetClassName));
 
                     $relation = new Relation();
@@ -255,8 +256,8 @@ class ExtbaseExporter
                             break;
                         case ClassMetadataInfo::MANY_TO_MANY:
                             $relationType = Relation::MANY_TO_MANY;
-                            if ('' != $relationNamePluralInversedBy) {
-                                $relationName = $relationNamePluralInversedBy;
+                            if ($relationNameSingularMappedBy == $tableName) {
+                                $relationName = $relationNamePlural;
                             } else {
                                 $relationName = $relationNamePluralMappedBy;
                             }
