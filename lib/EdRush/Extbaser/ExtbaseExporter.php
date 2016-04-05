@@ -224,8 +224,17 @@ class ExtbaseExporter
                 //export relations
                 $relationIndex = 0;
                 foreach ($metadata->associationMappings as $associationMapping) {
+                    $targetClassName = $associationMapping['targetEntity'];
+                    //remove namespaces, e.g. when importing entities
+                    if (class_exists($targetClassName)) {
+                        $reflection = new \ReflectionClass($targetClassName);
+                        $targetClassName = $reflection->getShortName();
+                    }
+
                     $relationNameSingular = $associationMapping['fieldName'];
                     $relationNamePlural = Inflector::pluralize(Inflector::singularize($associationMapping['fieldName']));
+                    $relationNamePluralInversedBy = Inflector::pluralize(Inflector::singularize($associationMapping['inversedBy']));
+                    $relationNamePluralMappedBy = Inflector::pluralize(strtolower($targetClassName));
 
                     $relation = new Relation();
                     $relationType = null;
@@ -246,23 +255,20 @@ class ExtbaseExporter
                             break;
                         case ClassMetadataInfo::MANY_TO_MANY:
                             $relationType = Relation::MANY_TO_MANY;
-                            $relationName = $relationNamePlural;
+                            if ('' != $relationNamePluralInversedBy) {
+                                $relationName = $relationNamePluralInversedBy;
+                            } else {
+                                $relationName = $relationNamePluralMappedBy;
+                            }
                             break;
-
                     }
 
                     $relation->setRelationName($relationName);
                     $relation->setRelationType($relationType);
-                    $relationName = $relationNameSingular;
 
+                    // add the relation to the module
                     $module->getValue()->getRelationGroup()->addRelation($relation);
 
-                    $targetClassName = $associationMapping['targetEntity'];
-                    //remove namespaces, e.g. when importing entities
-                    if (class_exists($targetClassName)) {
-                        $reflection = new \ReflectionClass($targetClassName);
-                        $targetClassName = $reflection->getShortName();
-                    }
                     $relationTargetsByModuleByRelation[$moduleIndex][$relationIndex] = $targetClassName;
                     $relationIndex++;
 
