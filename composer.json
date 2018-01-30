@@ -3,7 +3,7 @@
     "type": "library",
     "description": "Create a TYPO3 Extbase Extension from an existing database schema.",
     "keywords": ["orm", "database", "extbase"],
-    "license": "GPL",
+    "license": "MIT",
     "authors": [
         {
             "name": "Wolfram Eberius", 
